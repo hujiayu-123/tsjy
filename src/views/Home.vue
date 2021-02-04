@@ -1,20 +1,14 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-  </div>
+  <div class="home">主页</div>
 </template>
-
 <script>
-// @ is an alias to /src
-// import HelloWorld from '@/components/HelloWorld.vue'
-import { getList } from "../api/login";
 export default {
-  name: "Home",
-  components: {},
+  data() {
+    return {};
+  },
   mounted() {
-    getList({ page: 1, limit: 10 }).then(res => {
-      console.log(res);
-    });
-  }
+    console.log(this.$store.state.token);
+  },
 };
 </script>
+<style scoped lang="less"></style>

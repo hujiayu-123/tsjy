@@ -3,8 +3,10 @@
 import axios from 'axios'
 import store from '../store/index'
 
-import errorHandle from './errorHandle '
+import errorHandle from './errorHandle'
 import publicConfig from '../config/index'
+import { Col, Message } from 'element-ui';
+import { Loading } from 'element-ui'
 
 const CancelToken = axios.CancelToken
 
@@ -36,11 +38,15 @@ class HttpRequest {
     interceptors(instance) {
         //发送数据的请求拦截器
         instance.interceptors.request.use(function (config) {
+            Loading.service({
+                text: '加载中',
+                background: 'rgba(0,0,0,.5)'
+            });
             let isPublic = false
             publicConfig.publicPath.map((path) => {
                 isPublic = isPublic || path.test(config.url)
             })
-            const token = store.state.token
+            const token = localStorage.getItem('token')
             if (!isPublic && token) {
                 config.headers.authorization = 'Bearer ' + token
             }
@@ -59,14 +65,28 @@ class HttpRequest {
         });
 
         //响应请求拦截器 数据返回后的拦截器
-        instance.interceptors.response.use(function (res) {
+        instance.interceptors.response.use((res) => {
             //对数据的封装
             //let key = res.config.url + '&' + res.config.method
             // this.removePending(key)
+            let loadingInstance = Loading.service({
+                text: '加载中'
+            });
+            setTimeout(() => {
+                loadingInstance.close();
+            },0)
             if (res.status === 200) {
                 //promise.resolve
                 return new Promise((resolve) => {
-                    resolve(res.data)
+                    if(res.data.code === 200) {
+                        resolve(res.data)
+                    }else {
+                        Message({
+                            message: res.data.msg,
+                            type: "warning",
+                        });
+                    }
+                    
                 });
             } else {
                 //promise.reject
