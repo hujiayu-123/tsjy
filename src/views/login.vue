@@ -52,9 +52,9 @@
             </el-form-item>
           </el-form>
           <div class="tip">
-            还未注册？<span class="color" @click="handleToRegister"
-              >立即注册</span
-            >
+            <span @click="handleToRegister">立即注册</span>
+            <span class="hr"></span>
+            <span @click="handleToResetPwd">忘记密码？</span>
           </div>
           <div class="sanfang">
             <div>
@@ -101,7 +101,7 @@ export default {
         account: "",
         password: "",
         verification: "",
-        sid: "",
+        sid: ""
       },
       rules: {
         account: [
@@ -109,12 +109,12 @@ export default {
           {
             type: "email",
             message: "请输入正确的邮箱地址",
-            trigger: ["blur", "change"],
-          },
+            trigger: ["blur", "change"]
+          }
         ],
-        password: [{ required: true, message: "请输入密码", trigger: "blur" }],
+        password: [{ required: true, message: "请输入密码", trigger: "blur" }]
       },
-      svgHtml: "",
+      svgHtml: ""
     };
   },
   mounted() {
@@ -128,29 +128,29 @@ export default {
     // 获取图片验证码
     handleSvg() {
       let param = {
-        sid: uuidv4(),
+        sid: uuidv4()
       };
       this.ruleForm.sid = param.sid;
-      api.captcha(param).then((res) => {
+      api.captcha(param).then(res => {
         this.svgHtml = res.data;
       });
     },
     // 登录
     handleSubmit() {
-      this.$refs.ruleForm.validate((valid) => {
+      this.$refs.ruleForm.validate(valid => {
         if (valid) {
           let ruleForm = this.ruleForm;
           let params = {
             username: ruleForm.account,
             password: ruleForm.password,
             sid: ruleForm.sid,
-            svgCode: ruleForm.verification,
+            svgCode: ruleForm.verification
           };
-          api.login(params).then((res) => {
+          api.login(params).then(res => {
             if (res.code === 200) {
               this.$message({
                 message: "登录成功",
-                type: "success",
+                type: "success"
               });
               localStorage.setItem("userInfo", JSON.stringify(res.data));
               localStorage.setItem("token", res.token);
@@ -165,17 +165,20 @@ export default {
     handleToRegister() {
       this.$router.push({ path: "/register" });
     },
+    handleToResetPwd() {
+      this.$router.push({ path: "/reset" });
+    },
     // 第三方登录
     handleToTripartite(type) {
       if (type === "wb") {
       } else {
         this.$message({
           message: "功能暂未开发，敬请期待",
-          type: "warning",
+          type: "warning"
         });
       }
-    },
-  },
+    }
+  }
 };
 </script>
 <style lang="less">
@@ -269,8 +272,19 @@ export default {
         .tip {
           color: #c7c7c7;
           text-align: center;
-          .color {
+          span {
             cursor: pointer;
+            &:hover {
+              color: #409eff;
+            }
+          }
+          .hr {
+            width: 1px;
+            height: 12px;
+            background: #c7c7c7;
+            vertical-align: middle;
+            margin: 0 5px;
+            display: inline-block;
           }
         }
         .sanfang {

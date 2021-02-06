@@ -94,7 +94,7 @@ export default {
         password: "",
         okpassword: "",
         verification: "",
-        sid: "",
+        sid: ""
       },
       rules: {
         email: [
@@ -102,17 +102,17 @@ export default {
           {
             type: "email",
             message: "请输入正确的邮箱地址",
-            trigger: ["blur", "change"],
-          },
+            trigger: ["blur", "change"]
+          }
         ],
         name: [{ required: true, message: "请输入昵称", trigger: "blur" }],
         password: [{ validator: validatePass, trigger: "blur" }],
         okpassword: [{ validator: validatePass2, trigger: "blur" }],
         verification: [
-          { required: true, message: "请输入验证码", trigger: "blur" },
-        ],
+          { required: true, message: "请输入验证码", trigger: "blur" }
+        ]
       },
-      svgHtml: "",
+      svgHtml: ""
     };
   },
   mounted() {
@@ -126,16 +126,16 @@ export default {
     // 获取图片验证码
     handleSvg() {
       let param = {
-        sid: uuidv4(),
+        sid: uuidv4()
       };
       this.ruleForm.sid = param.sid;
-      api.captcha(param).then((res) => {
+      api.captcha(param).then(res => {
         this.svgHtml = res.data;
       });
     },
     // 注册
     handleSubmit() {
-      this.$refs.ruleForm.validate((valid) => {
+      this.$refs.ruleForm.validate(valid => {
         if (valid) {
           let ruleForm = this.ruleForm;
           let params = {
@@ -143,21 +143,21 @@ export default {
             username: ruleForm.email,
             password: ruleForm.okpassword,
             sid: ruleForm.sid,
-            svgCode: ruleForm.verification,
+            svgCode: ruleForm.verification
           };
-          api.reg(params).then((res) => {
+          api.reg(params).then(res => {
             if (res.code === 200) {
               this.$message({
                 message: "注册成功",
-                type: "success",
+                type: "success"
               });
               this.$router.push({ path: "/login" });
             }
           });
         }
       });
-    },
-  },
+    }
+  }
 };
 </script>
 <style lang="less">
@@ -169,7 +169,10 @@ export default {
   .register-box {
     width: 800px;
     background: #fff;
-    margin: calc(50vh - 250px) auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
     .avatar-img {
       width: 100px;
       height: 100px;

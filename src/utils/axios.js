@@ -97,6 +97,12 @@ class HttpRequest {
 
         }, function (error) {
             //处理200以外的错误404,500...
+            let loadingInstance = Loading.service({
+                text: '加载中'
+            });
+            setTimeout(() => {
+                loadingInstance.close();
+            },0)
             errorHandle(error)
             return Promise.reject(error);
         });
