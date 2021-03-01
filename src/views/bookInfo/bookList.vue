@@ -1,7 +1,15 @@
 <template>
   <div class="booklist">
+    <div :class="isFixed ? 'list-title-fixed' : 'list-title'" v-if="isCatalog">
+      {{ bookList[0].catalog }}
+    </div>
     <div class="booklist-lay">
-      <div class="item" v-for="item in bookList" :key="item.bid">
+      <div
+        class="item"
+        v-for="item in bookList"
+        :key="item.bid"
+        @click="handleToDetail(item)"
+      >
         <div class="avatar-img">
           <img :src="item.bookimg" alt="" />
         </div>
@@ -30,26 +38,35 @@ export default {
         page: 1,
         hasMore: false
       },
-      bookList: []
+      bookList: [],
+      isFixed: false,
+      isCatalog: false
     };
   },
   watch: {
     $route: {
       handler() {
-        this.filter.id = this.$route.query.id;
-        this.filter.bookname = this.$route.query.name;
-        this.filter.page = 1;
+        this.handleData();
         this.getList();
       },
       deep: true
     }
   },
   mounted() {
-    this.filter.id = this.$route.query.id;
-    this.filter.bookname = this.$route.query.name;
+    this.handleData();
     this.getList();
   },
   methods: {
+    handleData() {
+      this.filter.id = this.$route.query.id;
+      this.filter.bookname = this.$route.query.name;
+      this.filter.page = 1;
+      if (this.filter.id) {
+        this.isCatalog = true;
+      } else {
+        this.isCatalog = false;
+      }
+    },
     // 获取图书数据
     getList() {
       let params = {
@@ -74,6 +91,27 @@ export default {
         }
       });
     },
+    // 跳转详情
+    handleToDetail(val) {
+      let routeUrl = this.$router.resolve({
+        path: `/detail`,
+        query: {
+          id: val.bid
+        }
+      });
+      window.open(routeUrl.href, "_blank");
+    },
+    // 滚动条 分类标签样式切换
+    getScrollTop(val) {
+      if (this.isCatalog) {
+        if (val >= 140) {
+          this.isFixed = true;
+        } else {
+          this.isFixed = false;
+        }
+      }
+    },
+    // 下拉加载
     getLoad() {
       let filter = this.filter;
       if (filter.hasMore) {
@@ -89,6 +127,21 @@ export default {
   background: #f5f5f5;
   min-height: calc(100vh - 140px);
   overflow: auto;
+  .list-title {
+    width: 1200px;
+    margin: 10px auto;
+  }
+  .list-title-fixed {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    line-height: 60px;
+    background: #fff;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+  }
   .booklist-lay {
     width: 1200px;
     margin: 20px auto;

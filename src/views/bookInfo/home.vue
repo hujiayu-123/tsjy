@@ -24,7 +24,12 @@
             </div>
           </div>
           <div class="book-list">
-            <div class="book-item" v-for="i in item.list" :key="i.tid">
+            <div
+              class="book-item"
+              v-for="i in item.list"
+              :key="i.tid"
+              @click="handleToDetail(i)"
+            >
               <div class="avatar-img">
                 <img
                   :src="
@@ -54,7 +59,7 @@ export default {
     };
   },
   mounted() {
-    this.handleNav();
+    this.navList = this.$store.state.typeList;
   },
   methods: {
     // 查看更多
@@ -66,13 +71,15 @@ export default {
         }
       });
     },
-    // 获取列表数据
-    handleNav() {
-      api.catc().then(res => {
-        if (res.code === 200) {
-          this.navList = res.data;
+    // 跳转详情
+    handleToDetail(val) {
+      let routeUrl = this.$router.resolve({
+        path: `/detail`,
+        query: {
+          id: val.bid
         }
       });
+      window.open(routeUrl.href, "_blank");
     }
   }
 };

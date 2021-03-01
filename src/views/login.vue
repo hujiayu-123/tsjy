@@ -65,11 +65,13 @@
               ></i>
             </div>
             <div>
-              <i
-                @click="handleToTripartite('wb')"
-                title="微博登录"
-                class="iconfont icon-weibo-copy wb"
-              ></i>
+              <a id="login" href="">
+                <i
+                  @click="handleToTripartite('wb')"
+                  title="微博登录"
+                  class="iconfont icon-weibo-copy wb"
+                ></i>
+              </a>
             </div>
             <div>
               <i
@@ -141,7 +143,7 @@ export default {
         if (valid) {
           let ruleForm = this.ruleForm;
           let params = {
-            username: ruleForm.account,
+            userName: ruleForm.account,
             password: ruleForm.password,
             sid: ruleForm.sid,
             svgCode: ruleForm.verification
@@ -171,6 +173,13 @@ export default {
     // 第三方登录
     handleToTripartite(type) {
       if (type === "wb") {
+        let appkey = "1120286268";
+        let redirect_uri = "http://localhost:8080/oauth.html";
+        redirect_uri = encodeURI(redirect_uri);
+        let url = `https://api.weibo.com/oauth2/authorize?client_id=${appkey}&response_type=code&redirect_uri=${redirect_uri}`;
+        url = encodeURI(url);
+        let a = document.querySelector("#login");
+        a.href = url;
       } else {
         this.$message({
           message: "功能暂未开发，敬请期待",

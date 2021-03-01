@@ -3,11 +3,19 @@
     <div class="empty-img">
       <img :src="require('@/assets/img/no-data.png')" alt="" />
     </div>
-    <div class="tip">什么都没有哦，去看看其它吧！</div>
+    <div class="tip">{{ msg }}</div>
   </div>
 </template>
 <script>
-export default {};
+export default {
+  props: {
+    msg: {
+      default() {
+        return "什么都没有哦，去看看其它吧！";
+      }
+    }
+  }
+};
 </script>
 <style scoped lang="less">
 .empty {

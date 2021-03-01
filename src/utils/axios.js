@@ -9,7 +9,7 @@ import { Col, Message } from 'element-ui';
 import { Loading } from 'element-ui'
 
 const CancelToken = axios.CancelToken
-
+let loadingInstance = null
 class HttpRequest {
     constructor(baseUrl) {
         this.baseUrl = baseUrl
@@ -27,7 +27,7 @@ class HttpRequest {
         }
         return config
     }
-
+  
     // removePending(key, isRequest = false) {
     //     if (this.pending[key] && isRequest) {
     //         this.pending[key]('取消重复请求')
@@ -38,9 +38,9 @@ class HttpRequest {
     interceptors(instance) {
         //发送数据的请求拦截器
         instance.interceptors.request.use(function (config) {
-            Loading.service({
+            loadingInstance = Loading.service({
                 text: '加载中',
-                background: 'rgba(0,0,0,.5)'
+                background: 'rgba(0, 0, 0, 0.6)'
             });
             let isPublic = false
             publicConfig.publicPath.map((path) => {
@@ -59,6 +59,10 @@ class HttpRequest {
             //对请求的配置进行修改
             return config;
         }, function (error) {
+            loadingInstance = Loading.service({
+                text: '加载中',
+                background: 'rgba(0, 0, 0, 0.6)'
+            });
             // 请求失败,请求超时
             errorHandle(error)
             return Promise.reject(error);
@@ -69,9 +73,6 @@ class HttpRequest {
             //对数据的封装
             //let key = res.config.url + '&' + res.config.method
             // this.removePending(key)
-            let loadingInstance = Loading.service({
-                text: '加载中'
-            });
             setTimeout(() => {
                 loadingInstance.close();
             },0)
@@ -85,6 +86,7 @@ class HttpRequest {
                             message: res.data.msg,
                             type: "warning",
                         });
+                        resolve(res.data)
                     }
                     
                 });
@@ -97,9 +99,6 @@ class HttpRequest {
 
         }, function (error) {
             //处理200以外的错误404,500...
-            let loadingInstance = Loading.service({
-                text: '加载中'
-            });
             setTimeout(() => {
                 loadingInstance.close();
             },0)

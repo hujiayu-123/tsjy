@@ -8,7 +8,7 @@ const routes = [
     path: '/',
     name: 'layout',
     redirect: '/home',
-    component: () => import(/* webpackChunkName: "layout" */ '../views/layout.vue'),
+    component: () => import(/* webpackChunkName: "layout" */ '../views/bookInfo/index.vue'),
     children: [
       {
         path: 'home',
@@ -17,6 +17,66 @@ const routes = [
       {
         path: 'bookList',
         component: () => import(/* webpackChunkName: "bookList" */ '../views/bookInfo/bookList.vue')
+      },
+      {
+        path: 'detail',
+        component: () => import(/* webpackChunkName: "detail" */ '../views/bookInfo/detail.vue')
+      },
+      {
+        path: 'user',
+        redirect: '/user/center',
+        component: () => import(/* webpackChunkName: "detail" */ '../views/user/index.vue'),
+        children: [
+          {
+            path: 'center',
+            component: () => import(/* webpackChunkName: "center" */ '../views/user/center.vue')
+          },
+          {
+            path: 'comment',
+            component: () => import(/* webpackChunkName: "comment" */ '../views/user/comment.vue')
+          },
+          {
+            path: 'order',
+            component: () => import(/* webpackChunkName: "order" */ '../views/user/order.vue')
+          },
+          {
+            path: 'address',
+            component: () => import(/* webpackChunkName: "address" */ '../views/user/address.vue')
+          },
+          {
+            path: 'likeShop',
+            component: () => import(/* webpackChunkName: "likeShop" */ '../views/user/likeShop.vue')
+          },
+          {
+            path: 'userInfo',
+            component: () => import(/* webpackChunkName: "userInfo" */ '../views/user/userInfo.vue')
+          },
+          {
+            path: 'detail',
+            component: () => import(/* webpackChunkName: "detail" */ '../views/user/detail.vue')
+          },
+        ]
+      }
+    ]
+  },
+  {
+    path: '/buy',
+    name: 'buy',
+    redirect: '/buy/buyCar',
+    component: () => import(/* webpackChunkName: "buy" */ '../views/buyInfo/index.vue'),
+    children: [
+      {
+        path: 'buyCar',
+        component: () => import(/* webpackChunkName: "detail" */ '../views/buyInfo/buyCar.vue')
+      },
+      {
+        path: 'okOrder',
+        name: 'okOrder',
+        component: () => import(/* webpackChunkName: "detail" */ '../views/buyInfo/okOrder.vue')
+      },
+      {
+        path: 'confirm',
+        component: () => import(/* webpackChunkName: "confirm" */ '../views/buyInfo/confirm.vue')
       },
     ]
   },
@@ -43,17 +103,18 @@ const router = new VueRouter({
   routes
 })
 
-// router.beforeEach((to,from,next)=>{
-// 	if(to.path != '/login' && to.path != '/register'){
-// 		if(localStorage.getItem('token') != null){
-// 			next()
-// 		}else{
-// 			next('/login')
-// 		}
-// 	}else{
-//     next()
-//     localStorage.clear()
-// 	}
-// })
+const routePath = ['/login','/register','/reset','/home','/bookList','/detail']
+
+router.beforeEach((to,from,next)=>{
+	if(routePath.indexOf(to.path) == -1){
+		if(localStorage.getItem('token') != null){
+			next()
+		}else{
+			next('/login')
+		}
+	}else{
+    next()
+	}
+})
 
 export default router

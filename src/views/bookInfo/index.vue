@@ -7,32 +7,55 @@
     </div>
     <div class="nav">
       <div class="nav-lay" v-if="isLogin">
-        <div>
-          <el-dropdown class="el-dropdown" @command="handleCommand">
-            <span class="el-dropdown-link">
-              {{ userInfo.name
-              }}<i class="el-icon-arrow-down el-icon--right"></i>
-            </span>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item command="a">个人中心</el-dropdown-item>
-              <el-dropdown-item command="b">我的喜欢</el-dropdown-item>
-              <el-dropdown-item command="c">退出登录</el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </div>
-        <div>我的订单</div>
+        <AccountDropDown v-if="isDrop" />
+        <div @click="handleToOrder">我的订单</div>
         <div :class="isShop ? 'shop-car-a' : 'shop-car'">
-          <el-popover
-            @show="handleShow"
-            placement="bottom-end"
-            width="300"
-            trigger="hover"
-          >
+          <el-popover placement="bottom-end" width="300" trigger="hover">
             <div slot="reference">
               <i class="icon-gouwuche iconfont"></i>
-              购物车(0)
+              购物车({{ shopList.length }})
             </div>
-            <div class="shop">购物车中还没有选购商品，赶紧选购吧</div>
+            <div class="shop" v-if="!isShop">
+              购物车中还没有选购商品，赶紧选购吧
+            </div>
+            <div v-else class="lay-shop">
+              <div class="lay">
+                <div class="shop-item" v-for="item in shopList" :key="item.bid">
+                  <div class="info" @click="handleToDetail(item)">
+                    <div class="avatar-img">
+                      <img :src="item.bookimg" alt="" />
+                    </div>
+                    <div>
+                      {{ item.bookname }}
+                      <div class="ershou">
+                        {{ item.pubbook === "新书" ? "" : "(二手书)" }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="money">
+                    {{
+                      item.pubbook === "新书" ? item.price : item.price * 0.8
+                    }}元 x {{ item.count }}
+                  </div>
+                  <div class="del" @click="handleShopDel(item)">
+                    <i class="iconfont icon-delete"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bottom">
+                <div>
+                  <div class="num">共{{ sumNum }}件商品</div>
+                  <div class="color">
+                    <span class="size">{{ sumMoney }}</span
+                    >元
+                  </div>
+                </div>
+                <el-button type="primary" @click="handleTo('car')"
+                  >去购物车结算</el-button
+                >
+              </div>
+            </div>
           </el-popover>
         </div>
       </div>
@@ -56,6 +79,7 @@
                     class="list-lay"
                     v-for="(i, index) in item.list.slice(0, 6)"
                     :key="i.bid"
+                    @click="handleToDetail(i)"
                   >
                     <div class="item">
                       <div class="avatar-img">
@@ -99,22 +123,36 @@
       </div>
     </div>
     <div class="aside">
-      <div class="item">
+      <div class="item" @click="handleTo('center')">
         <div><i class="iconfont icon-wode"></i></div>
         <div>个人中心</div>
       </div>
-      <div class="item">
-        <div><i class="iconfont icon-gouwuche"></i></div>
+      <div class="item" @click="handleTo('car')">
+        <div class="shop-icon">
+          <i class="iconfont icon-gouwuche"></i>
+          <div class="shop-num" v-if="isLogin && shopList.length !== 0">
+            {{ shopList.length }}
+          </div>
+        </div>
         <div>购物车</div>
       </div>
     </div>
     <el-backtop> </el-backtop>
-    <router-view></router-view>
+    <router-view v-if="isRuterViewShow"></router-view>
   </div>
 </template>
 <script>
 import api from "@/api/index.js";
+import AccountDropDown from "../../component/AccountDropDown";
 export default {
+  components: {
+    AccountDropDown
+  },
+  provide() {
+    return {
+      reload: this.reload
+    };
+  },
   data() {
     return {
       isShop: false,
@@ -122,7 +160,11 @@ export default {
       isShow: false,
       navList: [],
       isLogin: false,
-      userInfo: {}
+      isRuterViewShow: false,
+      shopList: [],
+      sumNum: 0,
+      sumMoney: 0,
+      isDrop: true
     };
   },
   watch: {
@@ -131,14 +173,38 @@ export default {
         this.handleIsPath();
       },
       deep: true
+    },
+    "$store.state.shopList": function(val) {
+      if (val.length !== 0) {
+        this.isShop = true;
+      } else {
+        this.isShop = false;
+      }
+      this.sumNum = 0;
+      this.sumMoney = 0;
+      val.map(item => {
+        this.sumNum += item.count;
+        this.sumMoney +=
+          item.pubbook === "新书"
+            ? item.price * item.count
+            : item.price * 0.8 * item.count;
+      });
+      this.shopList = val;
     }
   },
   mounted() {
     this.handleNav();
     this.handleIsLogin();
     this.handleIsPath();
+    this.$store.dispatch("getShopList");
   },
   methods: {
+    reload() {
+      this.isDrop = false;
+      setTimeout(() => {
+        this.isDrop = true;
+      }, 0);
+    },
     handleIsPath() {
       if (this.$route.path === "/home") {
         this.isShow = true;
@@ -150,7 +216,6 @@ export default {
     handleIsLogin() {
       let userInfo = localStorage.getItem("userInfo");
       if (userInfo) {
-        this.userInfo = JSON.parse(userInfo);
         this.isLogin = true;
       } else {
         this.isLogin = false;
@@ -161,8 +226,14 @@ export default {
       api.catc().then(res => {
         if (res.code === 200) {
           this.navList = res.data;
+          this.$store.commit("setType", res.data);
+          this.isRuterViewShow = true;
         }
       });
+    },
+    // 删除购物车商品
+    handleShopDel(val) {
+      this.$store.dispatch("handleShopDel", val);
     },
     // 跳转登录页
     handleToLogin() {
@@ -174,13 +245,43 @@ export default {
     },
     // 查看更多
     handleToMore(val) {
-      console.log(val);
       this.$router.push({
         path: "/bookList",
         query: {
           id: val.cid
         }
       });
+    },
+    // 跳转详情
+    handleToDetail(val) {
+      let routeUrl = this.$router.resolve({
+        path: `/detail`,
+        query: {
+          id: val.bid
+        }
+      });
+      window.open(routeUrl.href, "_blank");
+    },
+    // 个人中心 / 购物车
+    handleTo(type) {
+      if (type === "center") {
+        let routeUrl = this.$router.resolve({
+          path: `/user/center`
+        });
+        window.open(routeUrl.href, "_blank");
+      } else {
+        let routeUrl = this.$router.resolve({
+          path: `/buy/buyCar`
+        });
+        window.open(routeUrl.href, "_blank");
+      }
+    },
+    // 跳转我的订单页面
+    handleToOrder() {
+      let routeUrl = this.$router.resolve({
+        path: "/user/order"
+      });
+      window.open(routeUrl.href, "_blank");
     },
     // 搜索关键字
     handleSearch() {
@@ -190,12 +291,6 @@ export default {
           name: this.keyword
         }
       });
-    },
-    handleCommand(type) {
-      console.log(type);
-    },
-    handleShow() {
-      console.log(111);
     }
   }
 };
@@ -239,10 +334,6 @@ export default {
         cursor: pointer;
         &:hover {
           color: #fff;
-        }
-        .el-dropdown {
-          font-size: 12px;
-          color: #b0b0b0;
         }
       }
     }
@@ -422,16 +513,102 @@ export default {
       &:hover {
         color: #409eff;
       }
+      .shop-icon {
+        position: relative;
+        .shop-num {
+          position: absolute;
+          right: -7px;
+          top: -8px;
+          background: red;
+          border-radius: 50%;
+          color: #fff;
+          font-size: 12px;
+          width: 15px;
+          height: 15px;
+          text-align: center;
+          line-height: 15px;
+        }
+      }
     }
   }
-}
-.el-dropdown-menu__item {
-  font-size: 12px;
 }
 .shop {
   font-size: 12px;
   text-align: center;
   padding: 20px;
+}
+.el-popover {
+  padding: 0;
+}
+.lay-shop {
+  .lay {
+    padding: 10px;
+  }
+  .shop-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #757575;
+    padding: 10px 20px 10px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    position: relative;
+    &:hover {
+      .del {
+        display: block;
+      }
+    }
+    .info {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      &:hover {
+        color: #409eff;
+      }
+    }
+    .avatar-img {
+      width: 40px;
+      height: 60px;
+      margin-right: 10px;
+      img {
+        width: 100%;
+      }
+    }
+    .ershou {
+      margin-top: 5px;
+    }
+    &:last-child {
+      border-bottom: 0;
+    }
+    .del {
+      display: none;
+      position: absolute;
+      right: 0px;
+      top: 38%;
+      .iconfont {
+        font-size: 14px;
+        color: #c0c0c0;
+        cursor: pointer;
+        &:hover {
+          color: #757575;
+        }
+      }
+    }
+  }
+  .bottom {
+    width: 100%;
+    height: 60px;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    box-sizing: border-box;
+    font-size: 12px;
+    .size {
+      font-size: 20px;
+    }
+  }
 }
 .shop-car {
   background: #424242;

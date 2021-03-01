@@ -15,7 +15,7 @@ export default {
         document.body.clientHeight;
       var scrollHeight =
         document.documentElement.scrollHeight || document.body.scrollHeight;
-      console.log(Math.ceil(scrollTop), scrollHeight - windowHeight);
+      this.getScrollTop(scrollTop);
       if (Math.ceil(scrollTop) >= scrollHeight - windowHeight) {
         this.getLoad();
       }
